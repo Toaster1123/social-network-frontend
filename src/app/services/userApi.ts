@@ -1,5 +1,4 @@
 import { api } from "./api"
-
 import { User } from "../types"
 
 export const userApi = api.injectEndpoints({
@@ -46,7 +45,7 @@ export const userApi = api.injectEndpoints({
   }),
 })
 
-const {
+export const {
   useRegisterMutation,
   useLoginMutation,
   useCurrentQuery,

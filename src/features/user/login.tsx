@@ -1,7 +1,16 @@
-import React from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { Input } from "../components/input"
+import { Input } from "../../components/input"
 import { Button, Link } from "@nextui-org/react"
+import {
+  useLazyCurrentQuery,
+  useLoginMutation,
+} from "../../app/services/userApi"
+import { useNavigate } from "react-router-dom"
+import { hasErrorField } from "../../utils/has-error-field"
+
+import { ErrorMessage } from "../../components/error-message"
+
 type Login = {
   email: string
   password: string
@@ -22,8 +31,26 @@ export const Login: React.FC<Props> = ({ setSelected }) => {
       password: "",
     },
   })
+  const [login, { isLoading }] = useLoginMutation()
+  const navigate = useNavigate()
+  const [error, setError] = useState("")
+  const [triggerCurrentCuery] = useLazyCurrentQuery()
+  const onSubmit = async (data: Login) => {
+    try {
+      await login(data).unwrap()
+      await triggerCurrentCuery().unwrap()
+      navigate("/")
+    } catch (err) {
+      if (hasErrorField(err)) {
+        setError(err.data.error)
+
+        console.error("Ошибка при входе", err)
+      }
+    }
+  }
+
   return (
-    <form className="flex flex-col gap-4 ">
+    <form className="flex flex-col gap-4 " onSubmit={handleSubmit(onSubmit)}>
       <Input
         control={control}
         name="email"
@@ -38,8 +65,10 @@ export const Login: React.FC<Props> = ({ setSelected }) => {
         type="password"
         required="Обязательное поле"
       />
+      <ErrorMessage error={error} />
+
       <p className="text-center text-small">
-        Нет аккаунта?{""}
+        Нет аккаунта?{" "}
         <Link
           size="sm"
           className="cursor-pointer"
@@ -51,7 +80,7 @@ export const Login: React.FC<Props> = ({ setSelected }) => {
         </Link>
       </p>
       <div className="flex wrap-2 justify-end">
-        <Button fullWidth color="primary" type="submit">
+        <Button fullWidth color="primary" type="submit" isLoading={isLoading}>
           Войти
         </Button>
       </div>

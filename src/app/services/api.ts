@@ -4,15 +4,15 @@ import { RootState } from "../store"
 
 const baseQuery = fetchBaseQuery({
   baseUrl: `${BASE_URL}/api`,
-  //   prepareHeaders: (Headers, { getState }) => {
-  //     const token =
-  //       (getState() as RootState).auth.token || localStorage.getItem("token")
+  prepareHeaders: (Headers, { getState }) => {
+    const token =
+      (getState() as RootState).auth.token || localStorage.getItem("token")
 
-  //     if (token) {
-  //       Headers.set("authorisation", `Bearer ${token}`)
-  //     }
-  //     return Headers
-  //   },
+    if (token) {
+      Headers.set("authorization", `Bearer ${token}`)
+    }
+    return Headers
+  },
 })
 const baseQueryWithRetry = retry(baseQuery, { maxRetries: 1 })
 export const api = createApi({
