@@ -32,6 +32,7 @@ import { FcDislike } from "react-icons/fc"
 import { MdOutlineFavoriteBorder } from "react-icons/md"
 import { FaRegComment } from "react-icons/fa"
 import { ErrorMessage } from "../error-message"
+import { hasErrorField } from "../../utils/has-error-field"
 type Props = {
   avatarUrl: string
   name: string
@@ -70,6 +71,63 @@ export const Card: React.FC<Props> = ({
   const navigate = useNavigate()
   const currentUser = useSelector(selectCurent)
 
+  const refetchPosts = async () => {
+    switch (cardFor) {
+      case "post":
+        await triggerGetAllPosts().unwrap()
+        break
+      case "current-post":
+        await triggerGetAllPosts().unwrap()
+        break
+      case "comment":
+        await triggerGetPostById(id).unwrap()
+        await refetchPosts()
+        break
+      default:
+        throw new Error("Неверный аргумент cardFor")
+    }
+  }
+
+  const handleClick = async () => {
+    try {
+      likedByUser
+        ? await unlikePost(id).unwrap()
+        : await likePost({ postId: id }).unwrap()
+      await refetchPosts()
+    } catch (error) {
+      if (hasErrorField(error)) {
+        setError(error.data.error)
+      } else {
+        setError(error as string)
+      }
+    }
+  }
+  const handleDelete = async () => {
+    try {
+      switch (cardFor) {
+        case "post":
+          await deletePost(id).unwrap()
+          await refetchPosts()
+          break
+        case "current-post":
+          await deletePost(id).unwrap()
+          navigate("/")
+          break
+        case "comment":
+          await deletePost(id).unwrap()
+          await refetchPosts()
+          break
+        default:
+          throw new Error("Неверный аргумент cardFor")
+      }
+    } catch (error) {
+      if (hasErrorField(error)) {
+        setError(error.data.error)
+      } else {
+        setError(error as string)
+      }
+    }
+  }
   return (
     <NextUiCard className="mb-5">
       <CardHeader className="justify-between items-center bg-transparent">
@@ -82,7 +140,7 @@ export const Card: React.FC<Props> = ({
           />
         </Link>
         {authorId === currentUser?.id && (
-          <div className="cursor-pointer">
+          <div className="cursor-pointer" onClick={handleDelete}>
             {deleteCommentStatus.isLoading || deletePostStatus.isLoading ? (
               <Spinner />
             ) : (
@@ -97,7 +155,7 @@ export const Card: React.FC<Props> = ({
       {cardFor !== "comment" && (
         <CardFooter className="gap-3">
           <div className="flex gap-5 items-center">
-            <div className="">
+            <div onClick={handleClick}>
               <MetaInfo
                 count={likesCount}
                 Icon={likedByUser ? FcDislike : MdOutlineFavoriteBorder}
