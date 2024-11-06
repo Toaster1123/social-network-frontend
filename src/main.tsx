@@ -14,6 +14,7 @@ import { UserProfile } from "./pages/user-profile"
 import { Followers } from "./pages/followers"
 import { Following } from "./pages/following"
 import { CurrentPost } from "./pages/current-post"
+import { AuthGuard } from "./features/user/authGuard"
 
 const container = document.getElementById("root")
 
@@ -35,7 +36,7 @@ const router = createBrowserRouter([
         element: <CurrentPost />,
       },
       {
-        path: "posts/:id",
+        path: "users/:id",
         element: <UserProfile />,
       },
       {
@@ -58,7 +59,9 @@ if (container) {
       <Provider store={store}>
         <NextUIProvider>
           <ThemeProvider>
-            <RouterProvider router={router} />
+            <AuthGuard>
+              <RouterProvider router={router} />
+            </AuthGuard>
           </ThemeProvider>
         </NextUIProvider>
       </Provider>
