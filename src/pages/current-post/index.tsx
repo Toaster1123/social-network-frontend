@@ -20,6 +20,7 @@ export const CurrentPost = () => {
     likedByUser,
     createdAt,
   } = data
+
   return (
     <>
       <GoBack />
