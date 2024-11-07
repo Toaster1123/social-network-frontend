@@ -49,10 +49,7 @@ export const CurrentPost = () => {
             authorId={comment.userId}
             commentId={comment.id}
             id={id}
-            // likesCount={likes.length}
-            // commentsCount={comments.length}
-            // likedByUser={likedByUser}
-            // createdAt={createdAt}
+            createdAt={createdAt}
           />
         ))}
       </div>

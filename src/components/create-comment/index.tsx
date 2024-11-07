@@ -20,19 +20,19 @@ export const CreateComment = () => {
     formState: { errors },
     setValue,
   } = useForm()
-  const error = errors?.post?.message as string
 
   const onSubmit = handleSubmit(async data => {
     try {
       if (id) {
         await createComment({ content: data.comment, postId: id }).unwrap()
-        setValue("post", "")
+        setValue("comment", "")
         await getPostById(id).unwrap()
       }
     } catch (error) {
       console.error(error)
     }
   })
+  const error = errors?.comment?.message as string
 
   return (
     <form className="flex-grow" onSubmit={onSubmit}>

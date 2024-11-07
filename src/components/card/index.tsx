@@ -22,7 +22,7 @@ import {
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useSelector } from "react-redux"
-import { selectCurent } from "../../features/user/userSlice"
+import { selectCurrent as selectCurrent } from "../../features/user/userSlice"
 import { User } from "../user"
 import { formatToClientDate } from "../../utils/format-to-client-date"
 import { RiDeleteBinLine } from "react-icons/ri"
@@ -46,7 +46,6 @@ type Props = {
   cardFor: "comment" | "post" | "current-post"
   likedByUser?: boolean
 }
-
 export const Card: React.FC<Props> = ({
   avatarUrl = "",
   name = "",
@@ -65,12 +64,10 @@ export const Card: React.FC<Props> = ({
   const [triggerGetAllPosts] = useLazyGetAllPostsQuery()
   const [triggerGetPostById] = useLazyGetPostByIdQuery()
   const [deletePost, deletePostStatus] = useDeletePostMutation()
-  const [createComment] = useCreateCommentMutation()
   const [deleteComment, deleteCommentStatus] = useDeleteCommentMutation()
   const [error, setError] = useState("")
   const navigate = useNavigate()
-  const currentUser = useSelector(selectCurent)
-
+  const currentUser = useSelector(selectCurrent)
   const refetchPosts = async () => {
     switch (cardFor) {
       case "post":
@@ -81,18 +78,17 @@ export const Card: React.FC<Props> = ({
         break
       case "comment":
         await triggerGetPostById(id).unwrap()
-        await refetchPosts()
         break
       default:
         throw new Error("Неверный аргумент cardFor")
     }
   }
-
   const handleClick = async () => {
     try {
       likedByUser
         ? await unlikePost(id).unwrap()
         : await likePost({ postId: id }).unwrap()
+      // console.log(id)
       await refetchPosts()
     } catch (error) {
       if (hasErrorField(error)) {
@@ -102,6 +98,7 @@ export const Card: React.FC<Props> = ({
       }
     }
   }
+
   const handleDelete = async () => {
     try {
       switch (cardFor) {
@@ -155,7 +152,10 @@ export const Card: React.FC<Props> = ({
       {cardFor !== "comment" && (
         <CardFooter className="gap-3">
           <div className="flex gap-5 items-center">
-            <div onClick={handleClick}>
+            <div
+              className={`h-[20px] w-[30px]  ${likedByUser ? `mr-[14px]  ` : `ml-3.5  `} `}
+              onClick={handleClick}
+            >
               <MetaInfo
                 count={likesCount}
                 Icon={likedByUser ? FcDislike : MdOutlineFavoriteBorder}
