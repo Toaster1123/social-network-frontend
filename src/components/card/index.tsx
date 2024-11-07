@@ -114,7 +114,7 @@ export const Card: React.FC<Props> = ({
           navigate("/")
           break
         case "comment":
-          await deletePost(id).unwrap()
+          await deleteComment(commentId).unwrap()
           await refetchPosts()
           break
         default:
