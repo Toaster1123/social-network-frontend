@@ -8,13 +8,16 @@ import {
   Modal,
   ModalBody,
   ModalContent,
+  ModalFooter,
   ModalHeader,
+  Button as NextUiButton,
   Textarea,
 } from "@nextui-org/react"
 import { Input } from "../input"
 import { MdOutlineEmail } from "react-icons/md"
 import { ErrorMessage } from "../error-message"
 import { Button } from "../button"
+import { hasErrorField } from "../../utils/has-error-field"
 
 type Props = {
   isOpen: boolean
@@ -28,7 +31,7 @@ export const EditProfile: React.FC<Props> = ({ isOpen, onClose, user }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const { id } = useParams<{ id: string }>()
 
-  const { handleSubmit, control } = useForm({
+  const { handleSubmit, control } = useForm<User>({
     mode: "onChange",
     reValidateMode: "onBlur",
     defaultValues: {
@@ -39,6 +42,36 @@ export const EditProfile: React.FC<Props> = ({ isOpen, onClose, user }) => {
       location: user?.location,
     },
   })
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files !== null) {
+      setSelectedFile(e.target.files[0])
+    }
+  }
+  const onSubmit = async (data: User) => {
+    if (id) {
+      try {
+        const formData = new FormData()
+        data.name && formData.append("name", data.name)
+        data.email &&
+          data.email !== user?.email &&
+          formData.append("email", data.email)
+        data.dateOfBirth &&
+          formData.append(
+            "dateOfBirth",
+            new Date(data.dateOfBirth).toISOString(),
+          )
+        data.bio && formData.append("bio", data.bio)
+        data.location && formData.append("location", data.location)
+        selectedFile && formData.append("avatar", selectedFile)
+        await updateUser({ userData: formData, id }).unwrap()
+        onClose()
+      } catch (error) {
+        if (hasErrorField(error)) {
+          setError(error.data.error)
+        }
+      }
+    }
+  }
   return (
     <Modal
       isOpen={isOpen}
@@ -46,25 +79,30 @@ export const EditProfile: React.FC<Props> = ({ isOpen, onClose, user }) => {
       className={`${theme} text-foreground`}
     >
       <ModalContent>
-        {onclose => (
+        {onClose => (
           <>
             <ModalHeader className="flex flex-col gap-1">
               Изменения профиля
             </ModalHeader>
             <ModalBody>
-              <form action="">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="flex flex-col gap-4"
+                action=""
+              >
+                <Input control={control} name="name" label="Имя" type="text" />
                 <Input
                   control={control}
-                  name="name"
+                  endContent={<MdOutlineEmail />}
+                  name="email"
                   label="Email"
                   type="email"
-                  endContent={<MdOutlineEmail />}
                 />
-                <Input control={control} name="name" label="Имя" type="text" />
                 <input
                   name="avatarUrl"
                   placeholder="Выберите файл"
                   type="file"
+                  onChange={handleFileChange}
                 />
                 <Input
                   control={control}
@@ -104,6 +142,11 @@ export const EditProfile: React.FC<Props> = ({ isOpen, onClose, user }) => {
                 </div>
               </form>
             </ModalBody>
+            <ModalFooter>
+              <NextUiButton color="danger" variant="light" onPress={onClose}>
+                Закрыть
+              </NextUiButton>
+            </ModalFooter>
           </>
         )}
       </ModalContent>
